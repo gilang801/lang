@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Word</title>
+    <style>
+        /* BASE STYLES - TETAP SESUAI ASLI */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow: hidden; 
+        }
+
+        /* BACKGROUND & LAYOUT CONTAINER */
+        .background {
+            background-color: #f7d2e3; 
+            height: 100vh;
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            position: relative; 
+        }
+
+        /* POP-UP CARD LOGIN */
+        .card {
+            background-color: #ffffff;
+            padding: 40px 60px;
+            border-radius: 20px; 
+            box-shadow: 0 8px 30px rgba(233, 30, 99, 0.2); 
+            text-align: center;
+            width: 350px; 
+            z-index: 100; 
+        }
+
+        .title {
+            color: #d81b60; 
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+
+        .magic-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f06292;
+            border-radius: 10px;
+            font-size: 20px;
+            text-align: center;
+            outline: none;
+            margin-bottom: 20px;
+        }
+
+        .enter-button {
+            background-color: #f06292; 
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* WELCOME SCREEN */
+        .welcome-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fce4ec; 
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .welcome-screen.active { opacity: 1; }
+
+        .start-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            border: none;
+            background: #e91e63;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none; 
+            flex-direction: column;
+            background-color: #f8bbd0; 
+            z-index: 10;
+        }
+        
+        .main-content.active { display: flex; }
+        
+        .main-header {
+            background-color: #e91e63;
+            color: white;
+            padding: 30px 0 10px 0;
+            text-align: center;
+        }
+
+        .main-header h1 {
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .main-header p {
+            font-size: 14px;
+            margin: 5px 0 20px 0;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            display: flex;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 15px 0;
+            text-decoration: none;
+            color: #e91e63;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            transition: background 0.3s;
+            border-right: 1px solid #fce4ec;
+        }
+
+        .nav-item:last-child { border-right: none; }
+
+        .nav-item.active-nav {
+            background-color: #f06292;
+            color: white;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            text-align: center;
+            background-image: radial-gradient(#f48fb1 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* --- UPLOAD UI STYLES --- */
+        .upload-wrapper {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .custom-file-upload {
+            background-color: #e91e63;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #c2185b;
+            transform: translateY(-2px);
+        }
+
+        /* --- GALLERY STYLES --- */
+        .photo-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 60px; 
+            padding: 40px 20px;
+            perspective: 1000px;
+        }
+
+        .photo-wrapper {
+            position: relative;
+            width: 220px;
+            height: 270px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-card {
+            background: white;
+            padding: 12px 12px 40px 12px;
+            border-radius: 2px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            width: 200px;
+            position: relative;
+            z-index: 10;
+            cursor: grab;
+            transition: opacity 0.3s;
+        }
+
+        .photo-card:hover {
+            animation: floatMove 2.5s ease-in-out infinite;
+        }
+
+        @keyframes floatMove {
+            0% { transform: translateY(0) rotate(var(--orig-rot)); }
+            25% { transform: translateY(-8px) rotate(calc(var(--orig-rot) + 2deg)); }
+            50% { transform: translateY(0) rotate(calc(var(--orig-rot) - 2deg)); }
+            75% { transform: translateY(-4px) rotate(calc(var(--orig-rot) + 1deg)); }
+            100% { transform: translateY(0) rotate(var(--orig-rot)); }
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border: 1px solid #f1f1f1;
+        }
+
+        .corner-emoji {
+            position: absolute;
+            font-size: 20px;
+            z-index: 11;
+        }
+
+        .emoji-tl { top: 5px; left: 5px; }
+        .emoji-tr { top: 5px; right: 5px; }
+        .emoji-bl { bottom: 35px; left: 5px; }
+        .emoji-br { bottom: 35px; right: 5px; }
+
+        .tape-effect {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 12;
+        }
+
+        /* --- NOTES STYLES --- */
+        .note-input-container {
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .note-textarea {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #fce4ec;
+            border-radius: 12px;
+            padding: 12px;
+            resize: none;
+            outline: none;
+            margin-bottom: 15px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .color-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-circle.selected {
+            border-color: #e91e63;
+            transform: scale(1.1);
+        }
+
+        .notes-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            padding-bottom: 50px;
+        }
+
+        .sticky-note {
+            width: 200px;
+            min-height: 200px;
+            padding: 30px 20px 20px 20px;
+            position: relative;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            font-weight: 600;
+            font-size: 15px;
+            color: #444;
+            text-align: left;
+            word-wrap: break-word;
+            transform: rotate(-1deg);
+            transition: transform 0.3s;
+        }
+
+        .sticky-note.pinned {
+            box-shadow: 0 0 15px rgba(233, 30, 99, 0.3);
+            border: 1px dashed #e91e63;
+            z-index: 5;
+        }
+
+        .pin-icon {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .note-actions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.5);
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* --- WISHLIST / LOVE ZONE STYLES --- */
+        .wishlist-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: left;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .wish-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .wish-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 2px solid #fce4ec;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .wish-item {
+            background: #fff5f8;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 5px solid #f06292;
+        }
+
+        .wish-item.completed {
+            background: #f1f8e9;
+            border-left-color: #8bc34a;
+            opacity: 0.8;
+        }
+
+        .wish-item.completed span {
+            text-decoration: line-through;
+            color: #777;
+        }
+
+        .wish-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #e91e63;
+        }
+
+        .wish-text {
+            flex-grow: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: #d81b60;
+        }
+
+        .delete-wish-btn {
+            background: none;
+            border: none;
+            color: #ff80ab;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 5px;
+        }
+
+        /* --- MUSIC PLAYER STYLES --- */
+        .music-player-card { background: white; max-width: 450px; margin: 0 auto; border-radius: 25px; padding: 25px; box-shadow: 0 10px 25px rgba(233, 30, 99, 0.1); }
+        .song-list-container { margin-top: 20px; max-height: 300px; overflow-y: auto; }
+        .song-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #fff5f8; margin: 8px 0; border-radius: 15px; transition: all 0.2s; }
+    </style>
+</head>
+<body>
+
+    <div class="background">
+        <div class="card" id="login-card">
+            <h1 class="title">Hey pretty, what's the magic word? ❤</h1>
+            <input type="password" class="magic-input" id="magic-input" placeholder="Masukkan kata sandi...">
+            <button class="enter-button" id="enter-button">Enter</button>
+            <p id="error-message" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        <div class="welcome-screen" id="welcome-screen">
+            <h2 style="color: #d81b60; font-size: 32px;">Hello Hanyy 🔥</h2>
+            <p style="color: #ad1457;">I hope you enjoy your stay 🥰</p>
+            <button class="start-button" id="start-exploring-button">Start Exploring ✨</button>
+        </div>
+
+        <div class="main-content" id="main-content">
+            <header class="main-header">
+                <h1>For Haniy ireng 💞</h1>
+                <p>A special place just for you</p>
+                <nav class="navigation">
+                    <a href="#" class="nav-item" data-target="love-zone-section">Love Zone 🏰</a>
+                    <a href="#" class="nav-item" data-target="music-section">Music 🎶</a>
+                    <a href="#" class="nav-item" data-target="gallery-section">Gallery 🖼️</a>
+                    <a href="#" class="nav-item" data-target="notes-section">Notes 📝</a>
+                </nav>
+            </header>
+
+            <main class="content-area">
+                <div class="content-section" id="love-zone-section">
+                    <h2 style="color: #e91e63; margin-bottom: 25px;">Our Love Wishlist ✨</h2>
+                    <div class="wishlist-container">
+                        <div class="wish-input-group">
+                            <input type="text" id="wish-input" class="wish-input" placeholder="Rencana kita selanjutnya...">
+                            <button id="add-wish-btn" class="custom-file-upload">Tambah</button>
+                        </div>
+                        <div id="wishlist-items"></div>
+                    </div>
+                </div>
+
+                <div class="content-section" id="music-section">
+                    <h2 style="color: #e91e63; margin-bottom: 25px;">Lagu Kita 🎶</h2>
+                    <div class="music-player-card">
+                         <label for="music-upload" class="custom-file-upload">Upload Lagu 🎵</label>
+                         <input id="music-upload" type="file" accept="audio/*" style="display:none;">
+                         <audio id="audio-player" controls style="width: 100%; margin: 20px 0;"></audio>
+                         <div id="song-list" class="song-list-container"></div>
+                    </div>
+                </div>
+                
+                <div class="content-section" id="gallery-section">
+                    <h2 style="color: #e91e63; margin-bottom: 20px;">Our Memories 🖼️</h2>
+                    <div class="upload-wrapper">
+                        <label for="photo-upload" class="custom-file-upload">Tambah Foto 📸</label>
+                        <input id="photo-upload" type="file" accept="image/*" style="display:none;">
+                    </div>
+                    <div class="photo-container" id="photo-container"></div>
+                </div>
+
+                <div class="content-section" id="notes-section">
+                    <h2 style="color: #e91e63; margin-bottom: 20px;">Love Board 📝</h2>
+                    <div class="note-input-container">
+                        <textarea id="note-text" class="note-textarea" placeholder="Tulis pesan sayang..."></textarea>
+                        <div class="color-selector" id="color-selector">
+                            <div class="color-circle selected" style="background-color: #fff9c4;" data-color="#fff9c4"></div>
+                            <div class="color-circle" style="background-color: #f8bbd0;" data-color="#f8bbd0"></div>
+                            <div class="color-circle" style="background-color: #e1f5fe;" data-color="#e1f5fe"></div>
+                            <div class="color-circle" style="background-color: #e8f5e9;" data-color="#e8f5e9"></div>
+                            <div class="color-circle" style="background-color: #f3e5f5;" data-color="#f3e5f5"></div>
+                        </div>
+                        <button class="custom-file-upload" id="post-note-btn">Kirim Pesan ✨</button>
+                    </div>
+                    <div class="notes-board" id="notes-board"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAV7XhUfZ6iqVpnto8G3g67n9NI2y5-zW4",
+            authDomain: "magicword-4e16c.firebaseapp.com",
+            databaseURL: "https://magicword-4e16c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "magicword-4e16c",
+            storageBucket: "magicword-4e16c.firebasestorage.app",
+            messagingSenderId: "573119015713",
+            appId: "1:573119015713:web:766705de582069a2206c60"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const MAGIC_WORD = "pieireng"; 
+        const DECOR_EMOJIS = ["✨", "💖", "🌸", "🧸", "☁️", "🍓", "🦋", "🌈", "🍭", "🎀"];
+        let selectedNoteColor = "#fff9c4";
+
+        // Login & Navigation (TETAP)
+        const loginCard = document.getElementById('login-card');
+        const magicInput = document.getElementById('magic-input');
+        const enterButton = document.getElementById('enter-button');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const mainContent = document.getElementById('main-content');
+
+        enterButton.onclick = () => {
+            if (magicInput.value.toLowerCase().trim() === MAGIC_WORD) {
+                loginCard.style.display = 'none';
+                welcomeScreen.style.display = 'flex';
+                setTimeout(() => welcomeScreen.classList.add('active'), 50);
+            } else {
+                document.getElementById('error-message').textContent = 'Kata sandi salah! 😊';
+            }
+        };
+
+        magicInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") enterButton.click();
+        });
+
+        document.getElementById('start-exploring-button').onclick = () => {
+            welcomeScreen.style.display = 'none';
+            mainContent.style.display = 'flex';
+            mainContent.classList.add('active');
+            document.querySelector('.nav-item').click();
+        };
+
+        document.querySelectorAll('.nav-item').forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                const target = link.dataset.target;
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+                document.getElementById(target).classList.add('active');
+                link.classList.add('active-nav');
+            };
+        });
+
+        // --- WISHLIST SYNC ---
+        document.getElementById('add-wish-btn').onclick = () => {
+            const input = document.getElementById('wish-input');
+            if (input.value.trim()) {
+                push(ref(db, 'wishlist'), { text: input.value, isCompleted: false });
+                input.value = '';
+            }
+        };
+        onValue(ref(db, 'wishlist'), (snap) => {
+            const container = document.getElementById('wishlist-items');
+            container.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const item = data[id];
+                    const div = document.createElement('div');
+                    div.className = `wish-item ${item.isCompleted ? 'completed' : ''}`;
+                    div.innerHTML = `
+                        <input type="checkbox" class="wish-checkbox" ${item.isCompleted ? 'checked' : ''} onclick="window.toggleWish('${id}', ${item.isCompleted})">
+                        <span class="wish-text">${item.text}</span>
+                        <button class="delete-wish-btn" onclick="window.deleteItem('wishlist/${id}')">×</button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        });
+
+        // --- NOTES SYNC ---
+        document.querySelectorAll('.color-circle').forEach(circle => {
+            circle.onclick = () => {
+                document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                circle.classList.add('selected');
+                selectedNoteColor = circle.dataset.color;
+            };
+        });
+        document.getElementById('post-note-btn').onclick = () => {
+            const text = document.getElementById('note-text').value.trim();
+            if (text) {
+                push(ref(db, 'notes'), { text, color: selectedNoteColor, isPinned: false });
+                document.getElementById('note-text').value = ''; 
+            }
+        };
+        onValue(ref(db, 'notes'), (snap) => {
+            const board = document.getElementById('notes-board');
+            board.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const n = data[id];
+                    const d = document.createElement('div');
+                    d.className = `sticky-note ${n.isPinned ? 'pinned' : ''}`;
+                    d.style.backgroundColor = n.color;
+                    d.innerHTML = `
+                        <div class="pin-icon" onclick="window.togglePin('${id}', ${n.isPinned})">${n.isPinned ? '📌' : '📍'}</div>
+                        <div class="note-content">${n.text}</div>
+                        <div class="note-actions"><button class="action-btn" onclick="window.deleteItem('notes/${id}')">🗑️</button></div>
+                    `;
+                    board.appendChild(d);
+                });
+            }
+        });
+
+        // --- PHOTO SYNC ---
+        document.getElementById('photo-upload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const shuffled = [...DECOR_EMOJIS].sort(() => 0.5 - Math.random());
+                    push(ref(db, 'photos'), { 
+                        src: ev.target.result, 
+                        rot: Math.floor(Math.random()*12)-6,
+                        corners: shuffled.slice(0, 4)
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        onValue(ref(db, 'photos'), (snap) => {
+            const container = document.getElementById('photo-container');
+            container.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const p = data[id];
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'photo-wrapper';
+                    wrapper.innerHTML = `
+                        <div class="photo-card" style="--orig-rot: ${p.rot}deg; transform: rotate(${p.rot}deg)">
+                            <div class="tape-effect"></div>
+                            <span class="corner-emoji emoji-tl">${p.corners[0]}</span>
+                            <span class="corner-emoji emoji-tr">${p.corners[1]}</span>
+                            <span class="corner-emoji emoji-bl">${p.corners[2]}</span>
+                            <span class="corner-emoji emoji-br">${p.corners[3]}</span>
+                            <img src="${p.src}">
+                            <button onclick="window.deleteItem('photos/${id}')" style="position:absolute; bottom:5px; right:5px; border:none; background:none; cursor:pointer; font-size:12px;">🗑️</button>
+                        </div>
+                    `;
+                    container.appendChild(wrapper);
+                });
+            }
+        });
+
+        // --- MUSIC SYNC ---
+        document.getElementById('music-upload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    push(ref(db, 'songs'), { title: file.name, data: ev.target.result });
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        onValue(ref(db, 'songs'), (snap) => {
+            const list = document.getElementById('song-list');
+            list.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const s = data[id];
+                    const item = document.createElement('div');
+                    item.className = 'song-card';
+                    item.innerHTML = `
+                        <span style="cursor:pointer" onclick="window.playSong('${id}')">🎵 ${s.title}</span>
+                        <button onclick="window.deleteItem('songs/${id}')" style="border:none;background:none;cursor:pointer">🗑️</button>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        });
+
+        // GLOBAL HELPERS UNTUK BUTTONS
+        window.deleteItem = (path) => remove(ref(db, path));
+        window.toggleWish = (id, current) => update(ref(db, `wishlist/${id}`), { isCompleted: !current });
+        window.togglePin = (id, current) => update(ref(db, `notes/${id}`), { isPinned: !current });
+        window.playSong = (id) => {
+            onValue(ref(db, `songs/${id}`), (snap) => {
+                const s = snap.val();
+                if (s) {
+                    const a = document.getElementById('audio-player');
+                    a.src = s.data;
+                    a.play();
+                }
+            }, { onlyOnce: true });
+        };
+    </script>
+</body>
+</html>
